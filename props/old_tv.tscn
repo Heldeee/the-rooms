@@ -1,0 +1,67 @@
+[gd_scene format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_tv_body"]
+size = Vector3(1.2, 0.9, 0.3)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tv_body"]
+size = Vector3(1.2, 0.9, 0.3)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tv_screen"]
+size = Vector3(1.0, 0.7, 0.05)
+
+[sub_resource type="StandardMaterial3D" id="mat_tv_body"]
+albedo_color = Color(0.25, 0.25, 0.22)
+roughness = 0.6
+
+[sub_resource type="StandardMaterial3D" id="mat_tv_screen"]
+albedo_color = Color(0.1, 0.1, 0.12)
+emission_enabled = true
+emission = Color(0.15, 0.15, 0.18)
+emission_energy_multiplier = 0.5
+roughness = 0.2
+
+[sub_resource type="BoxMesh" id="BoxMesh_tv_legs"]
+size = Vector3(0.08, 0.15, 0.08)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tv_legs"]
+size = Vector3(0.08, 0.15, 0.08)
+
+[sub_resource type="StandardMaterial3D" id="mat_tv_legs"]
+albedo_color = Color(0.2, 0.2, 0.18)
+roughness = 0.8
+
+[node name="OldTV" type="Node3D"]
+
+[node name="Body" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Body"]
+mesh = SubResource("BoxMesh_tv_body")
+surface_material_override/0 = SubResource("mat_tv_body")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Body"]
+shape = SubResource("BoxShape3D_tv_body")
+
+[node name="Screen" type="MeshInstance3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
+mesh = SubResource("BoxMesh_tv_screen")
+surface_material_override/0 = SubResource("mat_tv_screen")
+
+[node name="Leg1" type="StaticBody3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, -0.525, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Leg1"]
+mesh = SubResource("BoxMesh_tv_legs")
+surface_material_override/0 = SubResource("mat_tv_legs")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Leg1"]
+shape = SubResource("BoxShape3D_tv_legs")
+
+[node name="Leg2" type="StaticBody3D" parent="Body"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, -0.525, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Leg2"]
+mesh = SubResource("BoxMesh_tv_legs")
+surface_material_override/0 = SubResource("mat_tv_legs")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Leg2"]
+shape = SubResource("BoxShape3D_tv_legs")
