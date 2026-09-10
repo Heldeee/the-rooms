@@ -30,9 +30,6 @@ roughness = 0.95
 albedo_color = Color(0.78, 0.7, 0.43)
 roughness = 0.9
 
-[node name="RoomWalls" type="Node" parent="." unique_id=99999]
-script = ExtResource("4_walls")
-
 [node name="RoomCross" type="Node3D"]
 
 # Floor - plus/cross shaped

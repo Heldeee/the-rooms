@@ -2,18 +2,7 @@ extends Node3D
 ## Corridor-based procedural room generator — Backrooms style.
 ## Rooms are placed along paths (corridors) that branch, turn, and dead-end.
 ## Walls are removed where rooms connect to create continuous passages.
-##
-## Room types:
-## - Straight: 20m corridor segment
-## - Left turn: 90° left bend
-## - Right turn: 90° right bend
-## - T-Junction: 3-way intersection
-## - Cross: 4-way intersection
-## - Dead End: corridor that terminates
-## - Large Hall: wide open room with columns
-## - Door Frame: connected rooms with wooden door
 
-@export var room_scenes: Array[PackedScene] = []
 @export var corridor_length: int = 15
 @export var corridor_width: float = 10.0
 @export var branch_chance: float = 0.4
@@ -59,15 +48,12 @@ func _generate_segment(pos: Vector2i, direction: Vector2i, depth: int) -> void:
 	
 	visited[next_pos] = true
 	
-	# Decide room type based on position and randomness
 	var room_type = _choose_room_type(pos, direction)
 	
-	# Place room
 	var room = _create_room(room_type)
 	var world_pos = Vector3(next_pos.x * corridor_width, 0, next_pos.y * corridor_width)
 	room.global_position = world_pos
 	
-	# Rotate room to match corridor direction
 	var rotation_y = _get_rotation_for_direction(direction)
 	room.rotation.y = rotation_y
 	
@@ -76,7 +62,6 @@ func _generate_segment(pos: Vector2i, direction: Vector2i, depth: int) -> void:
 	
 	# Randomly branch
 	if rng.randf() < branch_chance and depth < max_depth - 2:
-		# Choose perpendicular direction
 		var perp_dir = Vector2i(-direction.y, direction.x)
 		if not (next_pos + perp_dir) in visited:
 			_generate_segment(next_pos, perp_dir, depth + 1)
@@ -86,7 +71,6 @@ func _generate_segment(pos: Vector2i, direction: Vector2i, depth: int) -> void:
 		_generate_segment(next_pos, direction, depth + 1)
 
 func _choose_room_type(pos: Vector2i, direction: Vector2i) -> String:
-	# Check how many neighbors exist to decide room type
 	var neighbors = 0
 	var adjacent_dirs = [
 		Vector2i(1, 0), Vector2i(-1, 0),
@@ -97,7 +81,6 @@ func _choose_room_type(pos: Vector2i, direction: Vector2i) -> String:
 		if (pos + adj) in visited:
 			neighbors += 1
 	
-	# More neighbors = more open room type
 	if neighbors >= 4:
 		return "cross"
 	elif neighbors == 3:
@@ -143,8 +126,6 @@ func _create_room(room_type: String) -> Node3D:
 		packed_scene = load("res://scenes/rooms/room_straight_corridor.tscn")
 	
 	var instance = packed_scene.instantiate()
-	
-	# Tag room for reference
 	instance.set_meta("room_type", room_type)
 	
 	return instance
@@ -167,12 +148,10 @@ func _remove_connection_walls() -> void:
 		for adj_dir in adjacent_dirs:
 			var neighbor = pos + adj_dir
 			if neighbor in visited:
-				# Find the two rooms and remove walls
 				var room_a = _find_room_at_position(pos)
 				var room_b = _find_room_at_position(neighbor)
 				
 				if room_a and room_b:
-					# Determine which walls to remove
 					var wall_a: String
 					var wall_b: String
 					
@@ -184,14 +163,16 @@ func _remove_connection_walls() -> void:
 							wall_a = "south"
 							wall_b = "north"
 					
-					# Remove walls via the RoomWalls node
-					var walls_a = room_a.get_node_or_null("RoomWalls")
-					var walls_b = room_b.get_node_or_null("RoomWalls")
-					
-					if walls_a:
-						walls_a.remove_wall(wall_a)
-					if walls_b:
-						walls_b.remove_wall(wall_b)
+					# Find and remove walls by name pattern
+					_remove_wall_by_name(room_a, "Wall" + wall_a.capitalize())
+					_remove_wall_by_name(room_b, "Wall" + wall_b.capitalize())
+
+func _remove_wall_by_name(room: Node3D, wall_name: String) -> void:
+	for child in room.get_children():
+		if child.name == wall_name or wall_name.lower() in child.name.to_lower():
+			child.queue_free()
+			print("Removed wall: %s in %s" % [wall_name, room.name])
+			return
 
 func _find_room_at_position(pos: Vector2i) -> Node3D:
 	var target = Vector3(pos.x * corridor_width, 0, pos.y * corridor_width)
@@ -206,11 +187,9 @@ func get_placed_rooms() -> Array[Node3D]:
 	return placed_rooms
 
 func regenerate(new_seed: int = 0) -> void:
-	# Remove all placed rooms
 	for room in placed_rooms:
 		room.queue_free()
 	placed_rooms.clear()
 	
-	# Regenerate with new seed
 	rng.seed = new_seed
 	generate_corridor()

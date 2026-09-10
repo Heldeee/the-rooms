@@ -2,6 +2,8 @@ extends Node
 ## Global audio manager — singleton for diegetic ambient sounds.
 ## Fluorescent hum, dripping water, footsteps, room tone, ambient wind.
 ## All procedural — no external audio files needed.
+##
+## Godot 4 compatible: uses AudioStreamGenerator for noise.
 
 const SIGNAL_ROOM_ENTER = &"room_entered"
 const SIGNAL_ROOM_EXIT = &"room_exited"
@@ -42,7 +44,7 @@ var _player_velocity_ref: CharacterBody3D = null
 
 # Hum
 var _hum_player: AudioStreamPlayer = null
-var _hum_noise: AudioStreamNoise = null
+var _hum_stream: AudioStreamGenerator = null
 
 # Drip
 var _drip_players: Array[AudioStreamPlayer] = []
@@ -51,7 +53,7 @@ var _drip_next_time: float = 0.0
 
 # Room tone
 var _tone_player: AudioStreamPlayer = null
-var _tone_noise: AudioStreamNoise = null
+var _tone_stream: AudioStreamGenerator = null
 
 # Footsteps
 var _step_timer: float = 0.0
@@ -59,7 +61,7 @@ var _step_next_time: float = 0.0
 
 # Ambient wind
 var _wind_player: AudioStreamPlayer = null
-var _wind_noise: AudioStreamNoise = null
+var _wind_stream: AudioStreamGenerator = null
 
 func _ready() -> void:
 	_rng.randomize()
@@ -83,21 +85,14 @@ func _ensure_bus(name: String) -> void:
 # ==================== INIT ====================
 
 func _init_hum() -> void:
-	_hum_noise = AudioStreamNoise.new()
-	_hum_noise.noise_type = AudioStreamNoise.NOISE_TYPE_PINK
-	_hum_noise.seed = int(Time.get_ticks_msec() % 1000)
+	_hum_stream = AudioStreamGenerator.new()
+	_hum_stream.mix_buffer_size = AudioStreamGenerator.MIX_BUFFER_TINY
+	_hum_stream.mix_rate = 44100
 	
 	_hum_player = AudioStreamPlayer.new()
-	_hum_player.stream = _hum_noise
+	_hum_player.stream = _hum_stream
 	_hum_player.volume_db = hum_volume_db
 	_hum_player.bus = "Ambient"
-	
-	# Low-pass filter to turn pink noise into a 60Hz hum
-	var lp = AudioEffectLowPass.new()
-	lp.frequency = hum_frequency * 4
-	lp.q = 0.7
-	
-	AudioServer.add_bus_effect(AudioServer.get_bus_index("Ambient"), lp, 0)
 	
 	add_child(_hum_player)
 
@@ -110,44 +105,26 @@ func _init_drip() -> void:
 		_drip_players.append(player)
 
 func _init_tone() -> void:
-	_tone_noise = AudioStreamNoise.new()
-	_tone_noise.noise_type = AudioStreamNoise.NOISE_TYPE_BROWN
-	_tone_noise.seed = int(Time.get_ticks_msec() % 1000)
+	_tone_stream = AudioStreamGenerator.new()
+	_tone_stream.mix_buffer_size = AudioStreamGenerator.MIX_BUFFER_TINY
+	_tone_stream.mix_rate = 44100
 	
 	_tone_player = AudioStreamPlayer.new()
-	_tone_player.stream = _tone_noise
+	_tone_player.stream = _tone_stream
 	_tone_player.volume_db = room_tone_volume_db
 	_tone_player.bus = "Ambient"
-	
-	# Bandpass filter for room resonance
-	var bp = AudioEffectBandPass.new()
-	bp.frequency = room_tone_max_freq
-	bp.q = 0.5
-	
-	var lp = AudioEffectLowPass.new()
-	lp.frequency = room_tone_max_freq * 2
-	
-	AudioServer.add_bus_effect(AudioServer.get_bus_index("Ambient"), bp, 1)
-	AudioServer.add_bus_effect(AudioServer.get_bus_index("Ambient"), lp, 2)
 	
 	add_child(_tone_player)
 
 func _init_wind() -> void:
-	_wind_noise = AudioStreamNoise.new()
-	_wind_noise.noise_type = AudioStreamNoise.NOISE_TYPE_WHITE
-	_wind_noise.seed = int(Time.get_ticks_msec() % 1000)
+	_wind_stream = AudioStreamGenerator.new()
+	_wind_stream.mix_buffer_size = AudioStreamGenerator.MIX_BUFFER_TINY
+	_wind_stream.mix_rate = 44100
 	
 	_wind_player = AudioStreamPlayer.new()
-	_wind_player.stream = _wind_noise
+	_wind_player.stream = _wind_stream
 	_wind_player.volume_db = wind_volume_db
 	_wind_player.bus = "Ambient"
-	
-	# Bandpass for wind character
-	var bp = AudioEffectBandPass.new()
-	bp.frequency = 300.0
-	bp.q = 0.3
-	
-	AudioServer.add_bus_effect(AudioServer.get_bus_index("Ambient"), bp, 3)
 	
 	add_child(_wind_player)
 
@@ -161,13 +138,16 @@ func _process(delta: float) -> void:
 	if _is_paused:
 		return
 	
-	# Hum modulation — fluorescent wobble
-	var bus_idx = AudioServer.get_bus_index("Ambient")
-	if bus_idx >= 0:
-		var effect = AudioServer.get_bus_effect(bus_idx, 0)
-		if effect is AudioEffectLowPass:
-			var mod = sin(Time.get_ticks_msec() * 0.001 * hum_mod_speed) * hum_mod_amount
-			effect.frequency = hum_frequency * 4 + mod
+	# Update generator streams with procedural audio
+	var buffer_size = 2048
+	var noise_data = PackedFloat32Array()
+	noise_data.resize(buffer_size)
+	
+	# Hum — pink noise through low-pass approximation
+	for i in buffer_size:
+		var t = float(Time.get_ticks_msec()) / 1000.0
+		noise_data[i] = _pink_noise() * 0.15 * (1.0 + 0.3 * sin(t * hum_mod_speed))
+	_hum_stream.mix(noise_data)
 	
 	# Drip
 	_drip_timer += delta
@@ -182,13 +162,43 @@ func _process(delta: float) -> void:
 	
 	# Wind modulation
 	_wind_player.volume_db = wind_volume_db + sin(Time.get_ticks_msec() * 0.001 * wind_mod_speed) * 3.0
+	for i in buffer_size:
+		var t = float(Time.get_ticks_msec()) / 1000.0
+		noise_data[i] = _white_noise() * 0.05 * (0.7 + 0.3 * sin(t * wind_mod_speed * 2.0))
+	_wind_stream.mix(noise_data)
+
+func _init_stream_noise(stream: AudioStreamGenerator, noise_type: int, volume: float) -> void:
+	var buffer_size = 2048
+	var noise_data = PackedFloat32Array()
+	noise_data.resize(buffer_size)
+	for i in buffer_size:
+		match noise_type:
+			0:  # White
+				noise_data[i] = _white_noise() * volume
+			1:  # Pink
+				noise_data[i] = _pink_noise() * volume
+			_:  # Brown
+				noise_data[i] = _brown_noise() * volume
+	stream.mix(noise_data)
 
 func _trigger_drip() -> void:
 	for p in _drip_players:
 		if not p.playing:
-			var stream := AudioStreamNoise.new()
-			stream.noise_type = AudioStreamNoise.NOISE_TYPE_PINK
-			stream.seed = int(Time.get_ticks_msec() % 1000)
+			var stream := AudioStreamGenerator.new()
+			stream.mix_buffer_size = AudioStreamGenerator.MIX_BUFFER_TINY
+			stream.mix_rate = 44100
+			
+			# Short burst of pink noise (drip sound)
+			var buffer_size = 4096
+			var noise_data = PackedFloat32Array()
+			noise_data.resize(buffer_size)
+			for i in buffer_size:
+				var envelope = 1.0 - (float(i) / buffer_size)
+				envelope = envelope * envelope
+				noise_data[i] = _pink_noise() * 0.3 * envelope
+			
+			stream.mix(noise_data)
+			
 			p.stream = stream
 			p.volume_db = drip_volume_db + _rng.randf_range(-4.0, 4.0)
 			p.play(0.0)
@@ -197,7 +207,7 @@ func _trigger_drip() -> void:
 
 func _handle_footsteps(delta: float) -> void:
 	var flat_vel: float = Vector2(_player_velocity_ref.velocity.x,
-	                              _player_velocity_ref.velocity.z).length()
+								  _player_velocity_ref.velocity.z).length()
 	
 	if flat_vel < step_min_speed:
 		_step_timer = 0.0
@@ -213,9 +223,19 @@ func _handle_footsteps(delta: float) -> void:
 		_step_next_time = _rng.randf_range(step_min_interval, step_max_interval)
 
 func _play_footstep() -> void:
-	var stream := AudioStreamNoise.new()
-	stream.noise_type = AudioStreamNoise.NOISE_TYPE_BROWN
-	stream.seed = int(Time.get_ticks_msec() % 1000)
+	var stream := AudioStreamGenerator.new()
+	stream.mix_buffer_size = AudioStreamGenerator.MIX_BUFFER_TINY
+	stream.mix_rate = 44100
+	
+	var buffer_size = 2048
+	var noise_data = PackedFloat32Array()
+	noise_data.resize(buffer_size)
+	for i in buffer_size:
+		var envelope = 1.0 - (float(i) / buffer_size)
+		envelope = envelope * envelope
+		noise_data[i] = _brown_noise() * 0.4 * envelope
+	
+	stream.mix(noise_data)
 	
 	var player := AudioStreamPlayer.new()
 	player.stream = stream
@@ -228,18 +248,32 @@ func _play_footstep() -> void:
 	if is_inside_tree():
 		player.queue_free()
 
+# ==================== NOISE GENERATORS ====================
+
+var _brown_acc := 0.0
+
+func _white_noise() -> float:
+	return _rng.randf_range(-1.0, 1.0)
+
+func _pink_noise() -> float:
+	# Binaural filter approximation
+	var white = _white_noise()
+	_brown_acc = _brown_acc * 0.998 + white * 0.002
+	return white * 0.5 + _brown_acc * 2.0
+
+func _brown_noise() -> float:
+	# Brownian noise (random walk)
+	_brown_acc += _white_noise() * 0.02
+	_brown_acc = clamp(_brown_acc, -1.0, 1.0)
+	return _brown_acc
+
 # ==================== ROOM MANAGEMENT ====================
 
 func enter_room(room_size: float = 10.0) -> void:
 	_current_room_size = room_size
 	
 	# Adjust room tone based on room size
-	var bus_idx = AudioServer.get_bus_index("Ambient")
-	if bus_idx >= 0 and AudioServer.get_bus_effect_count(bus_idx) >= 2:
-		var bp = AudioServer.get_bus_effect(bus_idx, 1)
-		if bp is AudioEffectBandPass:
-			var freq = lerp(room_tone_max_freq, room_tone_min_freq, room_size / 30.0)
-			bp.frequency = freq
+	_tone_player.volume_db = room_tone_volume_db - room_size * 0.1
 	
 	emit_signal(SIGNAL_ROOM_ENTER, room_size)
 

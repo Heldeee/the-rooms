@@ -34,9 +34,6 @@ roughness = 0.9
 albedo_color = Color(0.22, 0.16, 0.08)
 roughness = 0.7
 
-[node name="RoomWalls" type="Node" parent="." unique_id=99999]
-script = ExtResource("4_walls")
-
 [node name="RoomLeft" type="Node3D"]
 
 # Floor - L-shaped (two rectangles)
