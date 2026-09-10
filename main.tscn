@@ -3,16 +3,15 @@
 [ext_resource type="Script" uid="uid://b1jf04brl8e1k" path="res://scripts/room_generator.gd" id="1_72ix8"]
 [ext_resource type="Script" uid="uid://clw0dl45fq0c2" path="res://scripts/player.gd" id="2_0xm2m"]
 [ext_resource type="Script" uid="uid://clw0dl45fq0c3" path="res://scripts/audio_manager.gd" id="3_au"]
+[ext_resource type="Script" uid="uid://clw0dl45fq0c5" path="res://scripts/pause_menu.gd" id="4_pause"]
 
 [node name="Main" type="Node3D"]
 
 [node name="RoomGenerator" type="Node3D" parent="." unique_id=1820767055]
 script = ExtResource("1_72ix8")
-room_scenes = Array[PackedScene]([
-	load("res://scenes/rooms/room_straight_corridor.tscn"),
-	load("res://scenes/rooms/room_corridor_clutter.tscn"),
-])
+corridor_width = 10.0
 branch_chance = 0.4
+max_depth = 12
 
 [node name="Player" type="CharacterBody3D" parent="." unique_id=513595211]
 script = ExtResource("2_0xm2m")
@@ -27,6 +26,7 @@ script = ExtResource("3_au")
 
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=9002]
 layer = 10
+script = ExtResource("4_pause")
 
 [node name="VPS" type="VPushContainer" parent="PauseMenu"]
 
