@@ -2,10 +2,6 @@
 
 [ext_resource type="Script" uid="uid://b1jf04brl8e1k" path="res://scripts/room_generator.gd" id="1_72ix8"]
 [ext_resource type="Script" uid="uid://clw0dl45fq0c2" path="res://scripts/player.gd" id="2_0xm2m"]
-[ext_resource type="PackedScene" path="res://scenes/rooms/room_clutter.tscn" id="2_lquwl"]
-[ext_resource type="PackedScene" path="res://scenes/rooms/room_pillars.tscn" id="3_7mycd"]
-[ext_resource type="PackedScene" path="res://scenes/rooms/room_straight.tscn" id="4_272bh"]
-[ext_resource type="PackedScene" uid="uid://c2iuonvqfqr6b" path="res://scenes/rooms/room_wall.tscn" id="5_7mycd"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fk6pw"]
 
@@ -13,7 +9,6 @@
 
 [node name="RoomGenerator" type="Node3D" parent="." unique_id=1820767055]
 script = ExtResource("1_72ix8")
-room_scenes = Array[PackedScene]([ExtResource("2_lquwl"), ExtResource("3_7mycd"), ExtResource("4_272bh"), ExtResource("5_7mycd")])
 branch_chance = 0.9
 
 [node name="Player" type="CharacterBody3D" parent="." unique_id=513595211]

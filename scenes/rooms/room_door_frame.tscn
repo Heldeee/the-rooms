@@ -1,0 +1,183 @@
+[gd_scene format=3]
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(10, 0.2, 10)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(10, 0.2, 10)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_full"]
+size = Vector3(10, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_full"]
+size = Vector3(10, 3, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall_half"]
+size = Vector3(5, 3, 0.2)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wall_half"]
+size = Vector3(5, 3, 0.2)
+
+[sub_resource type="BoxMesh" id="BoxMesh_door"]
+size = Vector3(1.5, 2.4, 0.15)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_door"]
+size = Vector3(1.5, 2.4, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="mat_floor"]
+albedo_color = Color(0.36, 0.32, 0.27)
+roughness = 0.85
+
+[sub_resource type="StandardMaterial3D" id="mat_ceiling"]
+albedo_color = Color(0.86, 0.84, 0.78)
+roughness = 0.95
+
+[sub_resource type="StandardMaterial3D" id="mat_walls"]
+albedo_color = Color(0.78, 0.7, 0.43)
+roughness = 0.9
+
+[sub_resource type="StandardMaterial3D" id="mat_door"]
+albedo_color = Color(0.45, 0.32, 0.18)
+roughness = 0.7
+
+[node name="RoomDoorFrame" type="Node3D"]
+
+# Two connected rooms with a doorway between them
+[node name="RoomA_Floor" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RoomA_Floor"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("mat_floor")
+
+[node name="CollisionShape3D1" type="CollisionShape3D" parent="RoomA_Floor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="RoomA_Ceiling" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RoomA_Ceiling"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("mat_ceiling")
+
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="RoomA_Ceiling"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="RoomB_Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RoomB_Floor"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("mat_floor")
+
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="RoomB_Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 0)
+shape = SubResource("BoxShape3D_floor")
+
+[node name="RoomB_Ceiling" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 3, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RoomB_Ceiling"]
+mesh = SubResource("BoxMesh_floor")
+surface_material_override/0 = SubResource("mat_ceiling")
+
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="RoomB_Ceiling"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 3, 0)
+shape = SubResource("BoxShape3D_floor")
+
+# Room A walls (all 4 sides)
+[node name="WallNorth" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -5)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallNorth"]
+mesh = SubResource("BoxMesh_wall_full")
+surface_material_override/0 = SubResource("mat_walls")
+
+[node name="CollisionShape3D5" type="CollisionShape3D" parent="WallNorth"]
+shape = SubResource("BoxShape3D_wall_full")
+
+[node name="WallSouth" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 5)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallSouth"]
+mesh = SubResource("BoxMesh_wall_full")
+surface_material_override/0 = SubResource("mat_walls")
+
+[node name="CollisionShape3D6" type="CollisionShape3D" parent="WallSouth"]
+shape = SubResource("BoxShape3D_wall_full")
+
+[node name="WallWest" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1.5, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallWest"]
+mesh = SubResource("BoxMesh_wall_full")
+surface_material_override/0 = SubResource("mat_walls")
+
+[node name="CollisionShape3D7" type="CollisionShape3D" parent="WallWest"]
+shape = SubResource("BoxShape3D_wall_full")
+
+# Room B walls (all 4 sides)
+[node name="WallEast" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1.5, 10)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallEast"]
+mesh = SubResource("BoxMesh_wall_full")
+surface_material_override/0 = SubResource("mat_walls")
+
+[node name="CollisionShape3D8" type="CollisionShape3D" parent="WallEast"]
+shape = SubResource("BoxShape3D_wall_full")
+
+# Connecting wall with doorway (centered)
+[node name="WallConnection_North" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -2.5)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallConnection_North"]
+mesh = SubResource("BoxMesh_wall_half")
+surface_material_override/0 = SubResource("mat_walls")
+
+[node name="CollisionShape3D9" type="CollisionShape3D" parent="WallConnection_North"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, -2.5)
+shape = SubResource("BoxShape3D_wall_half")
+
+[node name="WallConnection_South" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 2.5)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="WallConnection_South"]
+mesh = SubResource("BoxMesh_wall_half")
+surface_material_override/0 = SubResource("mat_walls")
+
+[node name="CollisionShape3D10" type="CollisionShape3D" parent="WallConnection_South"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 2.5)
+shape = SubResource("BoxShape3D_wall_half")
+
+# Wooden door (broken/half-open)
+[node name="Door" type="StaticBody3D" parent="."]
+transform = Transform3D(0.02, 0, 0.999, 0, 1, 0, -0.999, 0, 0.02, -0.75, 1.2, -0.1)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Door"]
+mesh = SubResource("BoxMesh_door")
+surface_material_override/0 = SubResource("mat_door")
+
+[node name="CollisionShape3D11" type="CollisionShape3D" parent="Door"]
+shape = SubResource("BoxShape3D_door")
+
+# Door frame (wooden trim around opening)
+[node name="DoorFrameLeft" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 1.5, -0.75)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="DoorFrameLeft"]
+mesh = SubResource("BoxMesh_door")
+surface_material_override/0 = SubResource("mat_door")
+
+[node name="DoorFrameRight" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 1.5, 0.75)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="DoorFrameRight"]
+mesh = SubResource("BoxMesh_door")
+surface_material_override/0 = SubResource("mat_door")
+
+[node name="DoorFrameTop" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.8, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="DoorFrameTop"]
+mesh = SubResource("BoxMesh_door")
+surface_material_override/0 = SubResource("mat_door")
