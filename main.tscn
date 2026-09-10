@@ -2,14 +2,17 @@
 
 [ext_resource type="Script" uid="uid://b1jf04brl8e1k" path="res://scripts/room_generator.gd" id="1_72ix8"]
 [ext_resource type="Script" uid="uid://clw0dl45fq0c2" path="res://scripts/player.gd" id="2_0xm2m"]
+[ext_resource type="Script" uid="uid://clw0dl45fq0c3" path="res://scripts/audio_manager.gd" id="3_au"]
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fk6pw"]
-
-[node name="Main" type="Node3D" unique_id=2053093484]
+[node name="Main" type="Node3D"]
 
 [node name="RoomGenerator" type="Node3D" parent="." unique_id=1820767055]
 script = ExtResource("1_72ix8")
-branch_chance = 0.9
+room_scenes = Array[PackedScene]([
+	load("res://scenes/rooms/room_straight_corridor.tscn"),
+	load("res://scenes/rooms/room_corridor_clutter.tscn"),
+])
+branch_chance = 0.4
 
 [node name="Player" type="CharacterBody3D" parent="." unique_id=513595211]
 script = ExtResource("2_0xm2m")
@@ -18,3 +21,58 @@ script = ExtResource("2_0xm2m")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=1711144948]
 shape = SubResource("CapsuleShape3D_fk6pw")
+
+[node name="AudioManager" type="Node" parent="." unique_id=9001]
+script = ExtResource("3_au")
+
+[node name="PauseMenu" type="CanvasLayer" parent="." unique_id=9002]
+layer = 10
+
+[node name="VPS" type="VPushContainer" parent="PauseMenu"]
+
+[node name="Panel" type="PanelContainer" parent="PauseMenu/VPS"]
+anchors_preset = 7
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="ColorRect" parent="PauseMenu/VPS/Panel"]
+anchors_preset = 7
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="Container" type="VBoxContainer" parent="PauseMenu/VPS/Panel/Background"]
+theme_override_constants/separation = 15
+vertical = true
+offset_left = 100.0
+offset_top = 200.0
+offset_right = 100.0
+offset_bottom = 200.0
+
+[node name="Title" type="Label" parent="PauseMenu/VPS/Panel/Background/Container"]
+text = "Uzine"
+h_alignment = 1
+theme_override_font_sizes/font_size = 32
+theme_override_colors/font_color = Color(0.86, 0.84, 0.78, 1)
+
+[node name="VSplit" type="VSeparator" parent="PauseMenu/VPS/Panel/Background/Container"]
+
+[node name="Resume" type="Button" parent="PauseMenu/VPS/Panel/Background/Container"]
+text = "Resume"
+shortcut = SubResource("ShortcutKeyboard_x7p2l")
+
+[node name="Quit" type="Button" parent="PauseMenu/VPS/Panel/Background/Container"]
+text = "Quit to Menu"
+shortcut = SubResource("ShortcutKeyboard_abc123")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fk6pw"]
+
+[sub_resource type="Shortcut" id="ShortcutKeyboard_x7p2l"]
+shortcuts = Array[Object]([Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":true,"keycode":0,"physical_keycode":9,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)])
+
+[sub_resource type="Shortcut" id="ShortcutKeyboard_abc123"]
+shortcuts = Array[Object]([Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":true,"keycode":0,"physical_keycode":4194320,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)])
