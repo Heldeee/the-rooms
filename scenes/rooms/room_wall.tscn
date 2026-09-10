@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" path="res://props/lamp_led.tscn" id="1_lamp"]
 
+[ext_resource type="Script" uid="uid://clw0dl45fq0c4" path="res://scripts/room_walls.gd" id="4_walls"]
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(10, 0.2, 10)
 
@@ -50,6 +51,9 @@ size = Vector3(5, 3, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_7tgr3"]
 size = Vector3(5.160852, 0.15, 1.1853638)
+
+[node name="RoomWalls" type="Node" parent="." unique_id=99999]
+script = ExtResource("4_walls")
 
 [node name="RoomPillars" type="Node3D" unique_id=894070088]
 

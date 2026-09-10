@@ -13,35 +13,29 @@ extends Node3D
 ## - Large Hall: wide open room with columns
 ## - Door Frame: connected rooms with wooden door
 
-@export var room_scenes: Array[PackedScene]
+@export var room_scenes: Array[PackedScene] = []
 @export var corridor_length: int = 15
 @export var corridor_width: float = 10.0
 @export var branch_chance: float = 0.4
 @export var max_depth: int = 12
 @export var seed: int = 0
 
-var visited: Set[Vector2i]
+var visited: Dictionary
 var placed_rooms: Array[Node3D]
 var rng: RandomNumberGenerator
-var room_orientations: Dictionary
-
-# Connection points for wall removal (world coordinates)
-var connections: Array[Dictionary]
 
 func _ready() -> void:
-	visited = Set[Vector2i].create()
+	visited = {}
 	rng = RandomNumberGenerator.new()
-	rng.seed = seed if seed != 0 else Time.get_unix_time_from_system()
+	rng.seed = seed if seed != 0 else int(Time.get_unix_time_from_system() % 1000000)
 	generate_corridor()
 
 func generate_corridor() -> void:
 	placed_rooms.clear()
-	connections.clear()
-	visited.clear()
 	
 	# Start at origin
-	var current_pos: Vector2i = Vector2i(0, 0)
-	visited.insert(current_pos)
+	var current_pos = Vector2i(0, 0)
+	visited[current_pos] = true
 	
 	# Place starting room
 	var start_room = _create_room("straight")
@@ -51,16 +45,19 @@ func generate_corridor() -> void:
 	
 	# Generate corridor segments
 	_generate_segment(current_pos, Vector2i(0, -1), 0)
+	
+	# Remove walls at connections between rooms
+	_remove_connection_walls()
 
 func _generate_segment(pos: Vector2i, direction: Vector2i, depth: int) -> void:
 	if depth >= max_depth:
 		return
 	
 	var next_pos = pos + direction
-	if visited.has(next_pos):
+	if next_pos in visited:
 		return
 	
-	visited.insert(next_pos)
+	visited[next_pos] = true
 	
 	# Decide room type based on position and randomness
 	var room_type = _choose_room_type(pos, direction)
@@ -77,14 +74,11 @@ func _generate_segment(pos: Vector2i, direction: Vector2i, depth: int) -> void:
 	add_child(room)
 	placed_rooms.append(room)
 	
-	# Record connection for wall removal
-	_add_connection(pos, next_pos, direction)
-	
 	# Randomly branch
 	if rng.randf() < branch_chance and depth < max_depth - 2:
 		# Choose perpendicular direction
 		var perp_dir = Vector2i(-direction.y, direction.x)
-		if not visited.has(next_pos + perp_dir):
+		if not (next_pos + perp_dir) in visited:
 			_generate_segment(next_pos, perp_dir, depth + 1)
 	
 	# Continue in same direction
@@ -92,35 +86,32 @@ func _generate_segment(pos: Vector2i, direction: Vector2i, depth: int) -> void:
 		_generate_segment(next_pos, direction, depth + 1)
 
 func _choose_room_type(pos: Vector2i, direction: Vector2i) -> String:
-	# Check neighbors to decide room type
+	# Check how many neighbors exist to decide room type
 	var neighbors = 0
-	var adjacent_dirs: Array[Vector2i] = [
+	var adjacent_dirs = [
 		Vector2i(1, 0), Vector2i(-1, 0),
 		Vector2i(0, 1), Vector2i(0, -1)
 	]
 	
 	for adj in adjacent_dirs:
-		if visited.has(pos + adj):
+		if (pos + adj) in visited:
 			neighbors += 1
 	
 	# More neighbors = more open room type
-	match neighbors:
-		0:
-			return "straight"  # Start room
-		1:
-			var roll = rng.randf()
-			if roll < 0.6:
-				return "straight"
-			elif roll < 0.85:
-				return "corridor_clutter"
-			else:
-				return "dead_end"
-		2:
-			return "straight"  # Through corridor
-		3:
-			return "t_junction"
-		_:
-			return "cross"
+	if neighbors >= 4:
+		return "cross"
+	elif neighbors == 3:
+		return "t_junction"
+	elif neighbors == 2:
+		return "straight"
+	else:
+		var roll = rng.randf()
+		if roll < 0.65:
+			return "straight"
+		elif roll < 0.85:
+			return "corridor_clutter"
+		else:
+			return "dead_end"
 
 func _create_room(room_type: String) -> Node3D:
 	var scene_path: String
@@ -146,8 +137,12 @@ func _create_room(room_type: String) -> Node3D:
 		_:
 			scene_path = "res://scenes/rooms/room_straight_corridor.tscn"
 	
-	var packed_scene = load(scene_path) as PackedScene
-	var instance = packed_scene.instantiate() as Node3D
+	var packed_scene = load(scene_path)
+	if not packed_scene:
+		print("WARNING: Could not load scene: %s" % scene_path)
+		packed_scene = load("res://scenes/rooms/room_straight_corridor.tscn")
+	
+	var instance = packed_scene.instantiate()
 	
 	# Tag room for reference
 	instance.set_meta("room_type", room_type)
@@ -162,18 +157,50 @@ func _get_rotation_for_direction(direction: Vector2i) -> float:
 		Vector2i(1, 0): return -PI / 2.0    # East
 		_: return 0.0
 
-func _add_connection(from: Vector2i, to: Vector2i, direction: Vector2i) -> void:
-	var midpoint = Vector3(
-		(from.x + to.x) * corridor_width / 2.0,
-		1.5,  # Wall height center
-		(from.y + to.y) * corridor_width / 2.0
-	)
+func _remove_connection_walls() -> void:
+	# For each pair of adjacent rooms, remove the facing walls
+	for pos in visited:
+		var adjacent_dirs = [
+			Vector2i(1, 0), Vector2i(0, 1)
+		]
+		
+		for adj_dir in adjacent_dirs:
+			var neighbor = pos + adj_dir
+			if neighbor in visited:
+				# Find the two rooms and remove walls
+				var room_a = _find_room_at_position(pos)
+				var room_b = _find_room_at_position(neighbor)
+				
+				if room_a and room_b:
+					# Determine which walls to remove
+					var wall_a: String
+					var wall_b: String
+					
+					match adj_dir:
+						Vector2i(1, 0):
+							wall_a = "east"
+							wall_b = "west"
+						Vector2i(0, 1):
+							wall_a = "south"
+							wall_b = "north"
+					
+					# Remove walls via the RoomWalls node
+					var walls_a = room_a.get_node_or_null("RoomWalls")
+					var walls_b = room_b.get_node_or_null("RoomWalls")
+					
+					if walls_a:
+						walls_a.remove_wall(wall_a)
+					if walls_b:
+						walls_b.remove_wall(wall_b)
+
+func _find_room_at_position(pos: Vector2i) -> Node3D:
+	var target = Vector3(pos.x * corridor_width, 0, pos.y * corridor_width)
 	
-	var conn: Dictionary = {
-		"midpoint": midpoint,
-		"direction": direction
-	}
-	connections.append(conn)
+	for room in placed_rooms:
+		if room.global_position.distance_to(target) < 0.5:
+			return room
+	
+	return null
 
 func get_placed_rooms() -> Array[Node3D]:
 	return placed_rooms
