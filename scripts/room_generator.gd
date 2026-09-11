@@ -144,6 +144,12 @@ func _get_room_scene(type: String) -> String:
 			return "res://scenes/rooms/room_clutter.tscn"
 		"straight":
 			return "res://scenes/rooms/room_straight.tscn"
+		"corridor":
+			return "res://scenes/rooms/room_corridor.tscn"
+		"intersection":
+			return "res://scenes/rooms/room_intersection.tscn"
+		"storage":
+			return "res://scenes/rooms/room_storage.tscn"
 		"wall":
 			return "res://scenes/rooms/room_wall.tscn"
 		_:
@@ -164,12 +170,18 @@ func _get_perpendicular(direction: Vector2i) -> Vector2i:
 
 func _choose_room_type() -> String:
 	var roll: float = rng.randf()
-	if roll < 0.30:
+	if roll < 0.20:
 		return "straight"
+	elif roll < 0.35:
+		return "corridor"
 	elif roll < 0.50:
 		return "clutter"
-	elif roll < 0.75:
+	elif roll < 0.65:
 		return "pillars"
+	elif roll < 0.80:
+		return "storage"
+	elif roll < 0.90:
+		return "intersection"
 	return "wall"
 
 func _remove_connection_walls() -> void:
