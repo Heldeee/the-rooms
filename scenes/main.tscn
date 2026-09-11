@@ -4,6 +4,7 @@
 [ext_resource type="Script" path="res://scripts/player.gd" id="2_tbgi4"]
 [ext_resource type="Script" path="res://scripts/audio_manager.gd" id="3_jyhfs"]
 [ext_resource type="Script" path="res://scripts/pause_menu.gd" id="4_o6xl0"]
+[ext_resource type="Script" path="res://scripts/ambient_shift.gd" id="5_kp9mn"]
 
 [sub_resource type="Environment" id="Environment_backrooms"]
 background_color = Color(0.02, 0.015, 0.01, 1)
@@ -63,6 +64,9 @@ script = ExtResource("3_jyhfs")
 [node name="PauseMenu" type="CanvasLayer" parent="." unique_id=9002]
 layer = 10
 script = ExtResource("4_o6xl0")
+
+[node name="AmbientShift" type="Node" parent="." unique_id=9003]
+script = ExtResource("5_kp9mn")
 
 [node name="VPS" type="VBoxContainer" parent="PauseMenu" unique_id=1166319218]
 

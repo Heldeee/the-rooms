@@ -503,3 +503,28 @@ func pause_game(paused: bool) -> void:
 	_is_paused = paused
 	AudioServer.set_bus_mute(AudioServer.get_bus_index(_ambient_bus), paused)
 	AudioServer.set_bus_mute(AudioServer.get_bus_index(_sfx_bus), paused)
+
+func on_ambient_shift(t: float) -> void:
+	"""Called each frame by AmbientShift. Modulates audio based on exploration depth."""
+	# Hum: pitch goes up slightly as tension builds
+	if t > 0.0:
+		var hum_pitch = 1.0 + t * 0.4  # 1.0 → 1.4
+		_hum_player.pitch_scale = hum_pitch
+		# Volume decreases as dread takes over (dissonance)
+		_hum_player.volume_db = hum_volume_db - t * 6.0
+	
+	# Buzz: increases with depth (more electrical decay)
+	if t > 0.0:
+		_buzz_player.pitch_scale = 1.0 + t * 0.3
+		_buzz_player.volume_db = buzz_volume_db - t * 8.0
+	
+	# Drips: more frequent and closer as dread builds
+	if t > 0.3:
+		var new_min = drip_min_interval * (1.0 - t * 0.5)  # intervals halve
+		var new_max = drip_max_interval * (1.0 - t * 0.3)
+		drip_min_interval = new_min
+		drip_max_interval = new_max
+		_drip_next_time = _rng.randf_range(drip_min_interval, drip_max_interval)
+	
+	# Room tone: lower and darker
+	_tone_player.volume_db = room_tone_volume_db - t * 10.0

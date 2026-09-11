@@ -135,6 +135,7 @@ func generate_corridor() -> void:
 	_remove_connection_walls()
 	_apply_textures()
 	_apply_light_flicker()
+	_report_rooms_generated()
 
 func _get_room_scene(type: String) -> String:
 	match type:
@@ -367,3 +368,9 @@ func regenerate(new_seed: int = 0) -> void:
 		seed = new_seed
 	_init_rng()
 	generate_corridor()
+
+func _report_rooms_generated() -> void:
+	# Tell AmbientShift how many rooms exist so it can start the ambiance shift
+	var shift = get_node_or_null("AmbientShift")
+	if shift and shift.has_method("rooms_generated"):
+		shift.call("rooms_generated", placed_rooms.size())
