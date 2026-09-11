@@ -2,12 +2,13 @@ extends CharacterBody3D
 ## Contrôleur FPS simple : déplacement WASD, saut, regard souris, et head bobbing.
 
 @export var speed: float = 4.0
+@export var sprint_speed: float = 6.5
 @export var jump_velocity: float = 4.5
 @export var mouse_sensitivity: float = 0.003
 @export var gravity: float = 9.8
 
 # --- Paramètres du Head Bobbing ---
-@export var bob_freq: float = speed / 1.8 # Vitesse du balancement
+@export var bob_freq: float = 2.2 # Vitesse du balancement (≈ speed / 1.8 pour speed = 4.0)
 @export var bob_amp: float = 0.08  # Intensité/hauteur du balancement
 var _t_bob: float = 0.0            # Temps accumulé pour l'onde
 # ----------------------------------
@@ -46,14 +47,12 @@ func _physics_process(delta: float) -> void:
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	var direction := (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 
-	var current_speed := speed
-
 	if direction:
-		velocity.x = direction.x * current_speed
-		velocity.z = direction.z * current_speed
+		velocity.x = direction.x * speed
+		velocity.z = direction.z * speed
 	else:
-		velocity.x = move_toward(velocity.x, 0, current_speed)
-		velocity.z = move_toward(velocity.z, 0, current_speed)
+		velocity.x = move_toward(velocity.x, 0, speed)
+		velocity.z = move_toward(velocity.z, 0, speed)
 
 	move_and_slide()
 	

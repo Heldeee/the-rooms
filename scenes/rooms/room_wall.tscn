@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://c2iuonvqfqr6b"]
 
-[ext_resource type="PackedScene" path="res://props/lamp_led.tscn" id="1_lamp"]
+[ext_resource type="PackedScene" uid="uid://cj78q803r1n2e" path="res://props/lamp_led.tscn" id="1_lamp"]
 
 [sub_resource type="BoxMesh" id="BoxMesh_floor"]
 size = Vector3(10, 0.2, 10)
@@ -27,7 +27,7 @@ roughness = 0.9
 size = Vector3(10, 3, 0.2)
 
 [sub_resource type="BoxMesh" id="BoxMesh_baseboard_ns"]
-size = Vector3(10, 0.15, 0.3)
+size = Vector3(10, 0.15, 0.12558594)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_baseboard"]
 albedo_color = Color(0.22, 0.16, 0.08, 1)
@@ -40,7 +40,7 @@ size = Vector3(0.2, 3, 10)
 size = Vector3(0.2, 3, 10)
 
 [sub_resource type="BoxMesh" id="BoxMesh_baseboard_ew"]
-size = Vector3(0.3, 0.15, 10)
+size = Vector3(0.10996094, 0.15, 10)
 
 [sub_resource type="BoxMesh" id="BoxMesh_fk6pw"]
 size = Vector3(5, 3, 1)
@@ -83,7 +83,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_walls")
 shape = SubResource("BoxShape3D_wall_ns")
 
 [node name="Baseboard" type="MeshInstance3D" parent="WallNorth" unique_id=1743710115]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.425, 0.05)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.4222085, 0.14499998)
 mesh = SubResource("BoxMesh_baseboard_ns")
 surface_material_override/0 = SubResource("StandardMaterial3D_baseboard")
 
@@ -113,7 +113,7 @@ surface_material_override/0 = SubResource("StandardMaterial3D_walls")
 shape = SubResource("BoxShape3D_wall_ew")
 
 [node name="Baseboard" type="MeshInstance3D" parent="WallEast" unique_id=850383642]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.05, -1.425, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1410842, -1.425, 0)
 mesh = SubResource("BoxMesh_baseboard_ew")
 surface_material_override/0 = SubResource("StandardMaterial3D_baseboard")
 

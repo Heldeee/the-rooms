@@ -1,0 +1,100 @@
+[gd_scene format=3 uid="uid://de4b35lr8eb7x"]
+
+[ext_resource type="Script" path="res://scripts/room_generator.gd" id="1_jyhfs"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="2_tbgi4"]
+[ext_resource type="Script" path="res://scripts/audio_manager.gd" id="3_jyhfs"]
+[ext_resource type="Script" path="res://scripts/pause_menu.gd" id="4_o6xl0"]
+
+[sub_resource type="Environment" id="Environment_backrooms"]
+background_color = Color(0.02, 0.015, 0.01, 1)
+ambient_light_color = Color(0.3, 0.28, 0.22, 1)
+ambient_light_energy = 0.15
+tonemap_mode = 2
+tonemap_exposure = 0.75
+ssao_enabled = true
+glow_enabled = true
+glow_intensity = 1.2
+glow_bloom = 0.8
+fog_enabled = true
+fog_light_color = Color(0.4, 0.35, 0.2, 1)
+fog_light_energy = 0.3
+fog_density = 0.055
+fog_sky_affect = 0.0
+fog_height = -3.0
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fk6pw"]
+
+[sub_resource type="InputEventKey" id="InputEventKey_1bvp3"]
+device = -1
+pressed = true
+physical_keycode = 9
+
+[sub_resource type="Shortcut" id="ShortcutKeyboard_x7p2l"]
+events = [SubResource("InputEventKey_1bvp3")]
+
+[sub_resource type="InputEventKey" id="InputEventKey_lquwl"]
+device = -1
+pressed = true
+physical_keycode = 4194320
+
+[sub_resource type="Shortcut" id="ShortcutKeyboard_abc123"]
+events = [SubResource("InputEventKey_lquwl")]
+
+[node name="Main" type="Node3D" unique_id=537271319]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1241137407]
+environment = SubResource("Environment_backrooms")
+
+[node name="RoomGenerator" type="Node3D" parent="." unique_id=1820767055]
+script = ExtResource("1_jyhfs")
+
+[node name="Player" type="CharacterBody3D" parent="." unique_id=513595211]
+script = ExtResource("2_tbgi4")
+
+[node name="Camera3D" type="Camera3D" parent="Player" unique_id=1185607116]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=1711144948]
+shape = SubResource("CapsuleShape3D_fk6pw")
+
+[node name="AudioManager" type="Node" parent="." unique_id=9001]
+script = ExtResource("3_jyhfs")
+
+[node name="PauseMenu" type="CanvasLayer" parent="." unique_id=9002]
+layer = 10
+script = ExtResource("4_o6xl0")
+
+[node name="VPS" type="VBoxContainer" parent="PauseMenu" unique_id=1166319218]
+
+[node name="Panel" type="PanelContainer" parent="PauseMenu/VPS" unique_id=1328164786]
+layout_mode = 2
+
+[node name="Background" type="ColorRect" parent="PauseMenu/VPS/Panel" unique_id=349580258]
+layout_mode = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="Container" type="VBoxContainer" parent="PauseMenu/VPS/Panel/Background" unique_id=881754973]
+layout_mode = 0
+offset_left = 100.0
+offset_top = 200.0
+offset_right = 100.0
+offset_bottom = 200.0
+theme_override_constants/separation = 15
+
+[node name="Title" type="Label" parent="PauseMenu/VPS/Panel/Background/Container" unique_id=634827061]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.86, 0.84, 0.78, 1)
+theme_override_font_sizes/font_size = 32
+text = "The Rooms"
+
+[node name="VSplit" type="VSeparator" parent="PauseMenu/VPS/Panel/Background/Container" unique_id=1816579426]
+layout_mode = 2
+
+[node name="Resume" type="Button" parent="PauseMenu/VPS/Panel/Background/Container" unique_id=2050792781]
+layout_mode = 2
+shortcut = SubResource("ShortcutKeyboard_x7p2l")
+text = "Resume"
+
+[node name="Quit" type="Button" parent="PauseMenu/VPS/Panel/Background/Container" unique_id=166005353]
+layout_mode = 2
+shortcut = SubResource("ShortcutKeyboard_abc123")
+text = "Quit to Menu"

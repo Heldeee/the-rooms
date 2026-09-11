@@ -3,6 +3,7 @@ extends CanvasLayer
 
 @onready var resume_button: Button = $VPS/Panel/Background/Container/Resume
 @onready var quit_button: Button = $VPS/Panel/Background/Container/Quit
+@onready var audio_manager: Node = get_node_or_null("/root/Main/AudioManager")
 
 func _ready() -> void:
 	visible = false
@@ -18,9 +19,8 @@ func toggle_pause() -> void:
 	visible = not visible
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if visible else Input.MOUSE_MODE_CAPTURED
 	
-	var audio = get_node_or_null("/root/AudioManager")
-	if audio:
-		audio.pause_game(visible)
+	if audio_manager:
+		audio_manager.pause_game(visible)
 
 func _on_resume() -> void:
 	toggle_pause()
