@@ -23,6 +23,15 @@ roughness = 0.5
 mesh = SubResource("BoxMesh_panel")
 surface_material_override/0 = SubResource("StandardMaterial3D_panel")
 
+[node name="SpotLight3D" type="SpotLight3D" parent="."]
+light_color = Color(1, 0.95, 0.8, 1)
+light_energy = 5.0
+spot_range = 10.0
+spot_angle = 55.0
+spot_attenuation = 1.5
+shadow_enabled = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, 0)
+
 [node name="Housing" type="MeshInstance3D" parent="."]
 mesh = SubResource("BoxMesh_housing")
 surface_material_override/0 = SubResource("StandardMaterial3D_housing")

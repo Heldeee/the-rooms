@@ -224,7 +224,7 @@ func _find_and_apply_flicker(node: Node, flicker_script: GDScript) -> void:
 		var light: SpotLight3D = node as SpotLight3D
 		if light:
 			var variation: float = rng.randf_range(-0.5, 0.5)
-			light.set("base_energy", 3.0 + variation)
+			light.set("base_energy", 5.0 + variation)
 			light.set("flicker_speed", 2.0 + rng.randf_range(-1.0, 1.5))
 			light.set("flicker_intensity", 0.08 + rng.randf_range(-0.04, 0.08))
 			return
@@ -260,9 +260,9 @@ func _apply_textures() -> void:
 			var wall_node = _find_node_by_name(room, wall_name)
 			if wall_node and wall_node is MeshInstance3D:
 				_set_material_textured(wall_node as MeshInstance3D,
-					"res://textures/wallpaper_yellow.png",
-					"res://textures/wallpaper_yellow_normal.png",
-					Vector2(4.0, 4.0))
+						"res://textures/peeling_wallpaper.png",
+						"res://textures/peeling_wallpaper_normal.png",
+						Vector2(4.0, 4.0))
 		
 		# Add mold overlay to some walls
 		if rng.randf() < 0.4:
