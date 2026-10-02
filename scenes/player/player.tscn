@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://ccjm7w7gcifbo"]
 
-[ext_resource type="Script" uid="uid://clw0dl45fq0c2" path="res://scripts/player.gd" id="1_8afob"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="1_8afob"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_x7p2l"]
 
@@ -14,4 +14,5 @@ debug_color = Color(0.78442895, 0.32168245, 0.6325981, 0.41960785)
 [node name="Camera3D" type="Camera3D" parent="." unique_id=54547226]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
 current = true
-fov = 91.0
+fov = 75.0
+far = 100.0

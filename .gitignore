@@ -1,3 +1,11 @@
-# Godot 4+ specific ignores
+# Godot cache and local editor state
 .godot/
+.vscode/
 /android/
+
+# Local backups, logs and exports
+backups/
+*.log
+*.tmp
+nul
+exports/

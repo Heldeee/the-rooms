@@ -3,76 +3,73 @@ extends Node
 ## Changes are subtle per room, imperceptible in the moment, obvious in retrospect.
 
 var rooms_explored: int = 0
-var max_rooms: int = 100  # full shift after ~100 rooms
+@export_range(1, 500) var max_rooms: int = 60 # Unique discoveries; streaming has no fixed map size.
 var _audio_manager: Node
 var _env: Environment
-
-# Phase boundaries (room count)
-const PHASE_CHILL: int = 20
-const PHASE_EERIE: int = 50
-const PHASE_DREAD: int = 80
-const PHASE_NIGHTMARE: int = 100
+var _last_depth: float = -1.0  # depth the environment was last written at
 
 func _ready() -> void:
-	# Find WorldEnvironment and AudioManager by iterating parent children
-	var parent = get_parent()
+	# Robust, explicit references (no class-name string matching): WorldEnvironment and
+	# AudioManager are direct children of Main.
+	var parent: Node = get_parent()
 	if parent:
-		for child in parent.get_children():
-			if str(child.get_class()) == "WorldEnvironment" and _env == null:
-				_env = child.get("environment")
-			elif str(child.get_class()) == "Node" and "on_ambient_shift" in child and _audio_manager == null:
-				_audio_manager = child
-	
+		var we: Node = parent.get_node_or_null("WorldEnvironment")
+		_env = we.get("environment") if we else null
+		_audio_manager = parent.get_node_or_null("AudioManager")
 	if not is_instance_valid(_env):
 		push_error("[AmbientShift] No WorldEnvironment found!")
+	_apply_shift(_get_depth())
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
+	var t := _get_depth()  # 0.0 to 1.0
+	# The environment + audio only change when the player enters a room they
+	# haven't seen before (t moves in 1/max_rooms steps). On every other frame
+	# t is identical, so we skip: no property writes, no audio call. This removes
+	# ~15 environment property writes + an audio call that used to run 60x/s.
+	if absf(t - _last_depth) < 0.0001:
+		return
+	_last_depth = t
+	_apply_shift(t)
+
+func _apply_shift(t: float) -> void:
 	if not is_instance_valid(_env):
 		return
-	
-	var t = _get_depth()  # 0.0 to 1.0
-	
-	# --- Visual: color temperature shift (warm → cold) ---
-	# Start: warm yellowish (Backrooms "chill")
-	# End: cold sickly green/grey (Backrooms "nightmare")
+	# Level 0 stays warm; exploration subtly changes atmosphere.
 	_env.fog_light_color = Color(
 		lerp(0.4, 0.15, t),
 		lerp(0.35, 0.45, t),
 		lerp(0.2, 0.25, t)
 	)
-	
-	# Fog density increases (claustrophobia)
-	_env.fog_density = lerp(0.07, 0.15, t)
-	_env.fog_light_energy = lerp(0.3, 0.08, t)
-	
-	# Ambient light: warm → cold, bright → dim
+	# Fog stays off/very light (a thick blur would hide the space); it only adds a
+	# faint haze if fog is ever re-enabled — no thick late-game blur.
+	_env.fog_density = lerp(0.008, 0.02, t)
+	_env.fog_light_energy = lerp(0.2, 0.06, t)
+	# Affordable ambient fill replaces dynamic GI; retain readable yellow spaces.
+	_env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	_env.ambient_light_color = Color(
-		lerp(0.3, 0.08, t),
-		lerp(0.28, 0.15, t),
-		lerp(0.22, 0.28, t)
+		lerp(0.62, 0.5, t),
+		lerp(0.56, 0.46, t),
+		lerp(0.4, 0.33, t)
 	)
-	_env.ambient_light_energy = lerp(0.15, 0.04, t)
-	
+	_env.ambient_light_energy = lerp(0.34, 0.28, t)
 	# Exposure: gradually darker
-	_env.tonemap_exposure = lerp(0.75, 0.45, t)
-	
+	_env.tonemap_exposure = lerp(0.85, 0.8, t)
 	# Bloom: initially warm glow → cold harsh
-	_env.glow_bloom = lerp(0.8, 1.5, t)
-	_env.glow_intensity = lerp(1.2, 0.8, t)
-	
+	_env.glow_enabled = false
+	_env.glow_bloom = 0.0
+	_env.glow_intensity = 0.0
 	# Background color: dark yellow → deep blue-grey
 	_env.background_color = Color(
 		lerp(0.02, 0.008, t),
 		lerp(0.015, 0.02, t),
 		lerp(0.01, 0.03, t)
 	)
-	
 	# --- Audio: subtle shifts via AudioManager ---
-	if is_instance_valid(_audio_manager):
+	if is_instance_valid(_audio_manager) and _audio_manager.has_method("on_ambient_shift"):
 		_audio_manager.call("on_ambient_shift", t)
 
 func _get_depth() -> float:
-	return clampf(float(rooms_explored) / float(max_rooms), 0.0, 1.0)
+	return clampf(float(rooms_explored) / float(maxi(1, max_rooms)), 0.0, 1.0)
 
 func rooms_generated(count: int) -> void:
 	rooms_explored = count

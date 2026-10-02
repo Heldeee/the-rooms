@@ -1,4 +1,6 @@
-extends SpotLight3D
+extends Light3D
+## Works on any Light3D (OmniLight3D, SpotLight3D...) — only uses
+## light_energy, which is common to all of them.
 
 ## Flickering fluorescent light with realistic behavior.
 ## Multi-octave noise, random dimming events, slow drift.
@@ -6,7 +8,7 @@ extends SpotLight3D
 @export var base_energy: float = 3.5
 @export var flicker_speed: float = 2.5
 @export var flicker_intensity: float = 0.1
-@export var dim_chance: float = 0.0015
+@export var dim_chance: float = 0.09 # Probability rate per second.
 @export var dim_depth: float = 0.35
 @export var dim_duration: float = 0.4
 
@@ -18,15 +20,20 @@ var _seed: float = 0.0
 var _rng := RandomNumberGenerator.new()
 
 func _ready() -> void:
+	_rng.randomize()
 	_seed = _rng.randf()
 	_current_energy = base_energy
-	self.energy = base_energy
+	self.light_energy = base_energy
 
 func _process(delta: float) -> void:
-	_time += delta
-	
+	# When the lamp is culled (distance-culled by RoomGenerator, light disabled),
+	# do zero work: the OmniLight is already off, so flickering energy would do
+	# nothing. This drops the per-lamp CPU cost entirely for out-of-range lamps.
+	if not is_visible_in_tree():
+		return
+	_time += delta * flicker_speed
 	# Random deep-dim event (ballast glitch)
-	if not _dimming and _rng.randf() < dim_chance:
+	if not _dimming and _rng.randf() < 1.0 - exp(-dim_chance * delta):
 		_dimming = true
 		_dim_timer = dim_duration
 	
@@ -43,8 +50,8 @@ func _process(delta: float) -> void:
 		target = base_energy * _flicker_factor()
 	
 	# Smooth interpolation to avoid jumps
-	_current_energy += (target - _current_energy) * delta * 20.0
-	self.energy = _current_energy
+	_current_energy += (target - _current_energy) * (1.0 - exp(-delta * 20.0))
+	self.light_energy = _current_energy
 
 func _flicker_factor() -> float:
 	# Layer 1: slow drift (0.3Hz)

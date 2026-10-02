@@ -1,30 +1,24 @@
 [gd_scene format=3 uid="uid://de4b35lr8eb7x"]
 
 [ext_resource type="Script" path="res://scripts/room_generator.gd" id="1_jyhfs"]
-[ext_resource type="Script" path="res://scripts/player.gd" id="2_tbgi4"]
+[ext_resource type="PackedScene" uid="uid://ccjm7w7gcifbo" path="res://scenes/player/player.tscn" id="2_tbgi4"]
 [ext_resource type="Script" path="res://scripts/audio_manager.gd" id="3_jyhfs"]
 [ext_resource type="Script" path="res://scripts/pause_menu.gd" id="4_o6xl0"]
-[ext_resource type="Script" path="res://scripts/ambient_shift.gd" id="5_kp9mn"]
+[ext_resource type="Script" uid="uid://ccd6nolp3amf6" path="res://scripts/ambient_shift.gd" id="5_kp9mn"]
 
 [sub_resource type="Environment" id="Environment_backrooms"]
 background_color = Color(0.02, 0.015, 0.01, 1)
+ambient_light_source = 3
 ambient_light_color = Color(0.3, 0.28, 0.22, 1)
 ambient_light_energy = 0.15
 tonemap_mode = 2
 tonemap_exposure = 0.75
-ssao_enabled = true
-sdfgi_enabled = true
-glow_enabled = true
-glow_intensity = 1.2
-glow_bloom = 0.8
-fog_enabled = true
+glow_intensity = 0.0
 fog_light_color = Color(0.4, 0.35, 0.2, 1)
-fog_light_energy = 0.3
-fog_density = 0.07
+fog_light_energy = 0.2
+fog_density = 0.012
 fog_sky_affect = 0.0
 fog_height = -3.0
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_fk6pw"]
 
 [sub_resource type="InputEventKey" id="InputEventKey_1bvp3"]
 device = -1
@@ -49,14 +43,12 @@ environment = SubResource("Environment_backrooms")
 
 [node name="RoomGenerator" type="Node3D" parent="." unique_id=1820767055]
 script = ExtResource("1_jyhfs")
+map_seed = 900
+dead_end_chance = 0.1
+corridor_chance = 0.613
+big_room_chance = 0.087
 
-[node name="Player" type="CharacterBody3D" parent="." unique_id=513595211]
-script = ExtResource("2_tbgi4")
-
-[node name="Camera3D" type="Camera3D" parent="Player" unique_id=1185607116]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Player" unique_id=1711144948]
-shape = SubResource("CapsuleShape3D_fk6pw")
+[node name="Player" parent="." unique_id=513595211 instance=ExtResource("2_tbgi4")]
 
 [node name="AudioManager" type="Node" parent="." unique_id=9001]
 script = ExtResource("3_jyhfs")
@@ -65,13 +57,16 @@ script = ExtResource("3_jyhfs")
 layer = 10
 script = ExtResource("4_o6xl0")
 
-[node name="AmbientShift" type="Node" parent="." unique_id=9003]
-script = ExtResource("5_kp9mn")
-
 [node name="VPS" type="VBoxContainer" parent="PauseMenu" unique_id=1166319218]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="Panel" type="PanelContainer" parent="PauseMenu/VPS" unique_id=1328164786]
 layout_mode = 2
+size_flags_vertical = 3
 
 [node name="Background" type="ColorRect" parent="PauseMenu/VPS/Panel" unique_id=349580258]
 layout_mode = 2
@@ -79,10 +74,14 @@ color = Color(0, 0, 0, 0.7)
 
 [node name="Container" type="VBoxContainer" parent="PauseMenu/VPS/Panel/Background" unique_id=881754973]
 layout_mode = 0
-offset_left = 100.0
-offset_top = 200.0
-offset_right = 100.0
-offset_bottom = 200.0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -130.0
+offset_top = -90.0
+offset_right = 130.0
+offset_bottom = 90.0
 theme_override_constants/separation = 15
 
 [node name="Title" type="Label" parent="PauseMenu/VPS/Panel/Background/Container" unique_id=634827061]
@@ -97,9 +96,12 @@ layout_mode = 2
 [node name="Resume" type="Button" parent="PauseMenu/VPS/Panel/Background/Container" unique_id=2050792781]
 layout_mode = 2
 shortcut = SubResource("ShortcutKeyboard_x7p2l")
-text = "Resume"
+text = "Reprendre"
 
 [node name="Quit" type="Button" parent="PauseMenu/VPS/Panel/Background/Container" unique_id=166005353]
 layout_mode = 2
 shortcut = SubResource("ShortcutKeyboard_abc123")
-text = "Quit to Menu"
+text = "Quitter le jeu"
+
+[node name="AmbientShift" type="Node" parent="." unique_id=9003]
+script = ExtResource("5_kp9mn")
